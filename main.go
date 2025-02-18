@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
+
+func cleanInput(text string) []string {
+	var ret []string
+	text = strings.TrimSpace(text)
+	ret = strings.Fields(text)
+	return ret
+}
 
 func main() {
-	fmt.Print("Hello, World!")
+	p := cleanInput("poo")
+	fmt.Print(p)
 }
