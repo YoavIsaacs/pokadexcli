@@ -15,13 +15,19 @@ func cleanInput(text string) []string {
 }
 
 func main() {
+	InitCommands()
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
-		fmt.Print("Pokadex > ")
+		fmt.Print("Pokedex > ")
 		scanner.Scan()
-		input := scanner.Text()
-		input = strings.ToLower(input)
-		first := strings.Fields(input)[0]
-		fmt.Printf("Your command was: %s\n", first)
+		input := strings.TrimSpace(scanner.Text())
+		command, exists := Commands[input]
+		if !exists {
+			fmt.Print("Unknown command\n")
+			continue
+		}
+		if err := command.callback(); err != nil {
+			fmt.Print(fmt.Errorf("error executing command %s: %v", command.name, err))
+		}
 	}
 }
