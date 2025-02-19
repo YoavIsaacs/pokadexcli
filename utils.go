@@ -44,6 +44,11 @@ var Commands = map[string]cliCommand{
 		description: "Show the next 20 locations",
 		callback:    commandMap,
 	},
+	"nmap": {
+		name:        "nmap",
+		description: "Show the previous 20 locations",
+		callback:    commandNmap,
+	},
 }
 
 type MapInfo struct {
@@ -60,7 +65,36 @@ type APIResponse struct {
 
 func commandMap(c *Config) error {
 	res, err := http.Get(c.next)
-	fmt.Print(c.next + "\n")
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != 200 {
+		return fmt.Errorf("invalid response: %v\n", res.Status)
+	}
+	defer res.Body.Close()
+	var apiResponse APIResponse
+	decoder := json.NewDecoder(res.Body)
+	err = decoder.Decode(&apiResponse)
+	if err != nil {
+		return err
+	}
+	c.next = apiResponse.NextUrl
+	c.prev = apiResponse.Previous
+
+	fmt.Println()
+	for _, location := range apiResponse.Results {
+		fmt.Println(location.Name)
+	}
+	return nil
+}
+
+func commandNmap(c *Config) error {
+	if c.prev == "" {
+		fmt.Println("At the beginning, no previous maps...")
+		return nil
+	}
+
+	res, err := http.Get(c.prev)
 	if err != nil {
 		return err
 	}
