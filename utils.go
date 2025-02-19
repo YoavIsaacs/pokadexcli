@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/YoavIsaacs/pokadexcli/internal/pokecache"
 )
 
 type Config struct {
-	next string
-	prev string
+	next  string
+	prev  string
+	Cache pokecache.Cache
 }
 
 func commandHelp(c *Config) error {
@@ -64,6 +67,14 @@ type APIResponse struct {
 }
 
 func commandMap(c *Config) error {
+	data, ok := c.Cache.Cache[c.next]
+	if ok {
+		fmt.Println()
+		for _, location := range data.Val {
+			fmt.Println(location)
+		}
+	}
+
 	res, err := http.Get(c.next)
 	if err != nil {
 		return err
@@ -92,6 +103,14 @@ func commandNmap(c *Config) error {
 	if c.prev == "" {
 		fmt.Println("At the beginning, no previous maps...")
 		return nil
+	}
+
+	data, ok := c.Cache.Cache[c.prev]
+	if ok {
+		fmt.Println()
+		for _, location := range data.Val {
+			fmt.Println(location)
+		}
 	}
 
 	res, err := http.Get(c.prev)

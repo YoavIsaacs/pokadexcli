@@ -8,18 +8,18 @@ import (
 
 type cacheEntry struct {
 	createdAt time.Time
-	val       []byte
+	Val       []byte
 }
 
 type Cache struct {
-	cache  map[string]cacheEntry
+	Cache  map[string]cacheEntry
 	lock   sync.Mutex
 	expire time.Duration
 }
 
 func NewCache(expirePeriod time.Duration) *Cache {
 	c := &Cache{
-		cache:  make(map[string]cacheEntry),
+		Cache:  make(map[string]cacheEntry),
 		expire: expirePeriod,
 	}
 	go c.reapLoop()
@@ -32,21 +32,21 @@ func (c *Cache) Add(key string, val []byte) {
 
 	entry := cacheEntry{
 		createdAt: time.Now(),
-		val:       val,
+		Val:       val,
 	}
-	c.cache[key] = entry
+	c.Cache[key] = entry
 }
 
 func (c *Cache) Get(key string) ([]byte, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	data, ok := c.cache[key]
+	data, ok := c.Cache[key]
 
 	if !ok {
 		return []byte{}, errors.New("item not in cache...\n")
 	}
-	return data.val, nil
+	return data.Val, nil
 }
 
 func (c *Cache) reapLoop() {
@@ -64,9 +64,9 @@ func (c *Cache) reap() {
 	defer c.lock.Unlock()
 
 	now := time.Now()
-	for key, entry := range c.cache {
+	for key, entry := range c.Cache {
 		if now.Sub(entry.createdAt) > c.expire {
-			delete(c.cache, key)
+			delete(c.Cache, key)
 		}
 	}
 }
