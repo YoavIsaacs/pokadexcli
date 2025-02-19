@@ -36,10 +36,11 @@ type PlayerPokedex struct {
 
 func commandHelp(c *Config, _ string) error {
 	fmt.Println("Welcome to the Pokedex!")
-	fmt.Print("Usage:\n\n")
+	fmt.Print("\nUsage:\n\n")
 	for _, value := range Commands {
 		fmt.Printf("%s: %s\n", value.name, value.description)
 	}
+	fmt.Println()
 	return nil
 }
 
@@ -58,28 +59,33 @@ type cliCommand struct {
 var Commands = map[string]cliCommand{
 	"exit": {
 		name:        "exit",
-		description: "Exit the Pokedex",
+		description: "    Exit the Pokedex",
 		callback:    commandExit,
 	},
 	"map": {
 		name:        "map",
-		description: "Show the next 20 locations",
+		description: "     Show the next 20 locations",
 		callback:    commandMap,
 	},
 	"nmap": {
 		name:        "nmap",
-		description: "Show the previous 20 locations",
+		description: "    Show the previous 20 locations",
 		callback:    commandNmap,
 	},
 	"explore": {
 		name:        "explore",
-		description: "List all pokemon in this area",
+		description: " List all pokemon in this area",
 		callback:    commandExplore,
 	},
 	"catch": {
 		name:        "catch",
-		description: "Attempt to catch a pokemon",
+		description: "   Attempt to catch a pokemon",
 		callback:    commandCatch,
+	},
+	"inspect": {
+		name:        "inspect",
+		description: " Get the stats of a caught pokemon",
+		callback:    commandInspect,
 	},
 }
 
@@ -169,7 +175,7 @@ func commandNmap(c *Config, _ string) error {
 func InitCommands() {
 	Commands["help"] = cliCommand{
 		name:        "help",
-		description: "Displays a help message",
+		description: "    Displays a help message",
 		callback:    commandHelp,
 	}
 }
@@ -236,5 +242,74 @@ func commandCatch(c *Config, name string) error {
 	} else {
 		fmt.Println(name + " escaped!")
 	}
+	return nil
+}
+
+type statInfo struct {
+	BaseStat int `json:"base_stat"`
+	Stat     struct {
+		Name string `json:"name"`
+	} `json:"stat"`
+}
+
+type typeInfo struct {
+	Type struct {
+		Name string `json:"name"`
+	} `json:"type"`
+}
+
+type PokemonInfoForInspect struct {
+	Name   string     `json:"name"`
+	Height int        `json:"height"`
+	Weight int        `json:"weight"`
+	Stats  []statInfo `json:"stats"`
+	Types  []typeInfo `json:"types"`
+}
+
+func existsInPokedex(c *Config, name string) bool {
+	for _, n := range c.Pokedex.Pokemon {
+		if name == n {
+			return true
+		}
+	}
+	return false
+}
+
+func commandInspect(c *Config, name string) error {
+	if !existsInPokedex(c, name) {
+		fmt.Println("You have not caught that pokemon")
+		return nil
+	}
+	url := "https://pokeapi.co/api/v2/pokemon/" + name
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != 200 {
+		return fmt.Errorf("invalid response: %v\n", res.Status)
+	}
+
+	defer res.Body.Close()
+	var info PokemonInfoForInspect
+	decoder := json.NewDecoder(res.Body)
+	err = decoder.Decode(&info)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Name: %s\n", info.Name)
+	fmt.Printf("Height: %d\n", info.Height)
+	fmt.Printf("Weight: %d\n", info.Weight)
+
+	fmt.Println("Stats:")
+	for _, stat := range info.Stats {
+		fmt.Printf("  -%s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, t := range info.Types {
+		fmt.Printf("  - %s\n", t.Type.Name)
+	}
+
 	return nil
 }
