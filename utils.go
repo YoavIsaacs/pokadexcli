@@ -74,18 +74,23 @@ var Commands = map[string]cliCommand{
 	},
 	"explore": {
 		name:        "explore",
-		description: " List all pokemon in this area",
+		description: " List all Pokemon in this area",
 		callback:    commandExplore,
 	},
 	"catch": {
 		name:        "catch",
-		description: "   Attempt to catch a pokemon",
+		description: "   Attempt to catch a Pokemon",
 		callback:    commandCatch,
 	},
 	"inspect": {
 		name:        "inspect",
-		description: " Get the stats of a caught pokemon",
+		description: " Get the stats of a caught Pokemon",
 		callback:    commandInspect,
+	},
+	"pokedex": {
+		name:        "pokedex",
+		description: " List all caught Pokemon",
+		callback:    commandPokedex,
 	},
 }
 
@@ -238,6 +243,7 @@ func commandCatch(c *Config, name string) error {
 	playerChance := rand.IntN(chance.Chance * 2)
 	if playerChance > chance.Chance {
 		fmt.Println(name + " was caught!")
+		fmt.Println("You man now inspect it with the inspect command.")
 		c.Pokedex.Pokemon = append(c.Pokedex.Pokemon, name)
 	} else {
 		fmt.Println(name + " escaped!")
@@ -311,5 +317,17 @@ func commandInspect(c *Config, name string) error {
 		fmt.Printf("  - %s\n", t.Type.Name)
 	}
 
+	return nil
+}
+
+func commandPokedex(c *Config, _ string) error {
+	if len(c.Pokedex.Pokemon) == 0 {
+		fmt.Println("Your Pokedex is empty...")
+		return nil
+	}
+	fmt.Println("Your Pokemon:")
+	for _, p := range c.Pokedex.Pokemon {
+		fmt.Println("  - " + p)
+	}
 	return nil
 }
