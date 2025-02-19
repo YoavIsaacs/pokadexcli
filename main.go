@@ -24,6 +24,7 @@ func main() {
 	config.Cache = *pokecache.NewCache(10 * time.Second)
 	config.PokemonCache = *pokecache.NewCache(10 * time.Second)
 	config.next = "https://pokeapi.co/api/v2/location-area/"
+	config.Pokedex.Pokemon = []string{}
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()

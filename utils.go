@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"net/http"
 	"os"
 
@@ -14,6 +15,7 @@ type Config struct {
 	prev         string
 	Cache        pokecache.Cache
 	PokemonCache pokecache.Cache
+	Pokedex      PlayerPokedex
 }
 
 type PokemonInfo struct {
@@ -26,6 +28,10 @@ type PokemonEncounter struct {
 
 type PokemonResponse struct {
 	PokemonEncounters []PokemonEncounter `json:"pokemon_encounters"`
+}
+
+type PlayerPokedex struct {
+	Pokemon []string
 }
 
 func commandHelp(c *Config, _ string) error {
@@ -69,6 +75,11 @@ var Commands = map[string]cliCommand{
 		name:        "explore",
 		description: "List all pokemon in this area",
 		callback:    commandExplore,
+	},
+	"catch": {
+		name:        "catch",
+		description: "Attempt to catch a pokemon",
+		callback:    commandCatch,
 	},
 }
 
@@ -190,6 +201,40 @@ func commandExplore(c *Config, loc string) error {
 	fmt.Println()
 	for _, pokemons := range apiResponse.PokemonEncounters {
 		fmt.Println(pokemons.Pokemon.Name)
+	}
+	return nil
+}
+
+type pokemonChance struct {
+	Chance int `json:"base_experience"`
+}
+
+func commandCatch(c *Config, name string) error {
+	fmt.Println("Throwing a Pokeball at " + name + "...")
+	url := "https://pokeapi.co/api/v2/pokemon/" + name
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != 200 {
+		return fmt.Errorf("invalid response: %v\n", res.Status)
+	}
+
+	defer res.Body.Close()
+	var chance pokemonChance
+	decoder := json.NewDecoder(res.Body)
+	err = decoder.Decode(&chance)
+	if err != nil {
+		return err
+	}
+
+	playerChance := rand.IntN(chance.Chance * 2)
+	if playerChance > chance.Chance {
+		fmt.Println(name + " was caught!")
+		c.Pokedex.Pokemon = append(c.Pokedex.Pokemon, name)
+	} else {
+		fmt.Println(name + " escaped!")
 	}
 	return nil
 }
