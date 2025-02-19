@@ -18,6 +18,7 @@ func main() {
 	InitCommands()
 	scanner := bufio.NewScanner(os.Stdin)
 	config := new(Config)
+	cache := cache.C
 	config.next = "https://pokeapi.co/api/v2/location-area/"
 	for {
 		fmt.Print("Pokedex > ")
