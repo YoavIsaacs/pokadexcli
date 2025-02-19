@@ -17,6 +17,8 @@ func cleanInput(text string) []string {
 func main() {
 	InitCommands()
 	scanner := bufio.NewScanner(os.Stdin)
+	config := new(Config)
+	config.next = "https://pokeapi.co/api/v2/location-area/"
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
@@ -26,7 +28,7 @@ func main() {
 			fmt.Print("Unknown command\n")
 			continue
 		}
-		if err := command.callback(); err != nil {
+		if err := command.callback(config); err != nil {
 			fmt.Print(fmt.Errorf("error executing command %s: %v", command.name, err))
 		}
 	}
