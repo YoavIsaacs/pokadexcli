@@ -164,6 +164,13 @@ func InitCommands() {
 }
 
 func commandExplore(c *Config, loc string) error {
+	data, ok := c.PokemonCache.Cache[loc]
+	if ok {
+		fmt.Println()
+		for _, pokemon := range data.Val {
+			fmt.Println(pokemon)
+		}
+	}
 	url := "https://pokeapi.co/api/v2/location-area/" + loc
 	res, err := http.Get(url)
 	if err != nil {

@@ -28,6 +28,9 @@ func main() {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
 		input := strings.TrimSpace(scanner.Text())
+		if input == "" {
+			continue
+		}
 
 		split := strings.Fields(input)
 		command, exists := Commands[split[0]]
