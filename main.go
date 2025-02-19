@@ -22,17 +22,21 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	config := new(Config)
 	config.Cache = *pokecache.NewCache(10 * time.Second)
+	config.PokemonCache = *pokecache.NewCache(10 * time.Second)
 	config.next = "https://pokeapi.co/api/v2/location-area/"
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
 		input := strings.TrimSpace(scanner.Text())
-		command, exists := Commands[input]
+
+		split := strings.Fields(input)
+		command, exists := Commands[split[0]]
+
 		if !exists {
 			fmt.Print("Unknown command\n")
 			continue
 		}
-		if err := command.callback(config); err != nil {
+		if err := command.callback(config, split[1]); err != nil {
 			fmt.Print(fmt.Errorf("error executing command %s: %v", command.name, err))
 		}
 	}
