@@ -31,6 +31,9 @@ func main() {
 
 		split := strings.Fields(input)
 		command, exists := Commands[split[0]]
+		if len(split) == 1 {
+			split = append(split, "")
+		}
 
 		if !exists {
 			fmt.Print("Unknown command\n")
