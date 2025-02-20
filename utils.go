@@ -221,6 +221,10 @@ type pokemonChance struct {
 }
 
 func commandCatch(c *Config, name string) error {
+	if existsInPokedex(c, name) {
+		fmt.Println("You already have this Pokemon in your Pokedex!")
+		return nil
+	}
 	fmt.Println("Throwing a Pokeball at " + name + "...")
 	url := "https://pokeapi.co/api/v2/pokemon/" + name
 	res, err := http.Get(url)
